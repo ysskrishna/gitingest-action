@@ -1,0 +1,170 @@
+#!/usr/bin/env python3
+"""Entrypoint for gitingest GitHub Action."""
+
+import os
+import sys
+from pathlib import Path
+
+STEP_SUMMARY_TEMPLATE = """\
+### 📄 Gitingest Digest for `{slug}`
+
+{summary}
+
+<details>
+<summary>Directory Tree</summary>
+
+```
+{tree}
+```
+
+</details>
+"""
+
+
+def get_input(name, required=False, default=None):
+    """Read action input from INPUT_* env var."""
+    value = os.environ.get(f"INPUT_{name.upper().replace('-', '_')}", "").strip()
+    if not value:
+        if required:
+            print(f"::error::Required input '{name}' is missing or empty.")
+            sys.exit(1)
+        return default
+    return value
+
+
+def parse_bool(value):
+    """Parse a string boolean input."""
+    return value.lower() in ("true", "1", "yes") if value else False
+
+
+def parse_patterns(value):
+    """Parse newline-separated patterns into a set."""
+    if not value:
+        return None
+    patterns = {p.strip() for p in value.splitlines() if p.strip()}
+    return patterns if patterns else None
+
+
+def format_size(size_bytes):
+    """Format file size in human-readable form."""
+    for unit in ['B', 'KB', 'MB', 'GB']:
+        if size_bytes < 1024.0:
+            return f"{size_bytes:.1f} {unit}"
+        size_bytes /= 1024.0
+    return f"{size_bytes:.1f} TB"
+
+
+def main():
+    # Read inputs
+    source = get_input("source", default="")
+    max_file_size_str = get_input("max_file_size", default="10485760")
+    include_patterns_str = get_input("include_patterns", default="")
+    exclude_patterns_str = get_input("exclude_patterns", default="")
+    branch = get_input("branch", default=None)
+    tag = get_input("tag", default=None)
+    include_gitignored = parse_bool(get_input("include_gitignored", default="false"))
+    include_submodules = parse_bool(get_input("include_submodules", default="false"))
+    token = get_input("token", default=None)
+    output_dir = get_input("output_dir", default="gitingest-output")
+
+    # Resolve source
+    if not source:
+        source = os.environ.get("GITHUB_WORKSPACE", ".")
+    print(f"Source: {source}")
+
+    # Parse max_file_size
+    try:
+        max_file_size = int(max_file_size_str)
+    except (ValueError, TypeError):
+        print(f"::error::Invalid max-file-size value: '{max_file_size_str}'. Must be an integer.")
+        sys.exit(1)
+
+    # Parse patterns
+    include_patterns = parse_patterns(include_patterns_str)
+    exclude_patterns = parse_patterns(exclude_patterns_str)
+
+    # Validate output directory
+    workspace = Path(os.environ.get("GITHUB_WORKSPACE", ".")).resolve()
+    resolved_output_dir = (workspace / output_dir).resolve()
+    if not resolved_output_dir.is_relative_to(workspace):
+        print(f"::error::output-dir '{output_dir}' resolves outside the workspace.")
+        sys.exit(1)
+
+    # Import gitingest
+    try:
+        from gitingest import ingest
+    except ImportError:
+        print("::error::Failed to import gitingest. Is the package installed?")
+        sys.exit(1)
+
+    # Run ingestion
+    print(f"Running gitingest on: {source}")
+    try:
+        summary, tree, content = ingest(
+            source,
+            max_file_size=max_file_size,
+            include_patterns=include_patterns,
+            exclude_patterns=exclude_patterns,
+            branch=branch,
+            tag=tag,
+            include_gitignored=include_gitignored,
+            include_submodules=include_submodules,
+            token=token,
+            output=None,  # We handle file writing ourselves
+        )
+
+        # Create output directory
+        resolved_output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Write three separate files
+        summary_file = resolved_output_dir / "summary.txt"
+        tree_file = resolved_output_dir / "tree.txt"
+        content_file = resolved_output_dir / "content.txt"
+
+        summary_file.write_text(summary, encoding="utf-8")
+        tree_file.write_text(tree, encoding="utf-8")
+        content_file.write_text(content, encoding="utf-8")
+
+        # Print success message with file info
+        print(f"\nDigest files written to: {resolved_output_dir}")
+        print(f"  summary.txt:  {format_size(summary_file.stat().st_size)}")
+        print(f"  tree.txt:     {format_size(tree_file.stat().st_size)}")
+        print(f"  content.txt:  {format_size(content_file.stat().st_size)}")
+
+        # Derive a slug for display
+        slug = source
+        if source == os.environ.get("GITHUB_WORKSPACE", "."):
+            repo = os.environ.get("GITHUB_REPOSITORY", "")
+            slug = repo if repo else source
+
+        # GitHub Step Summary
+        summary_file_path = os.environ.get("GITHUB_STEP_SUMMARY")
+        if summary_file_path:
+            with open(summary_file_path, "a", encoding="utf-8") as f:
+                f.write(STEP_SUMMARY_TEMPLATE.format(
+                    slug=slug,
+                    summary=summary,
+                    tree=tree,
+                ))
+
+        print(
+            f"\nDigest files are available at {output_dir}/ and can be used in"
+            " subsequent workflow steps or uploaded as artifacts."
+        )
+
+    except ValueError as e:
+        print(f"::error::Ingestion error: {e}")
+        sys.exit(1)
+    except RuntimeError as e:
+        print(f"::error::Git operation failed: {e}")
+        sys.exit(1)
+    except OSError as e:
+        print(f"::error::File system error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"::error::Unhandled error: {e}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

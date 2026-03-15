@@ -1,0 +1,77 @@
+name: 'Gitingest'
+description: 'Analyze a Git repository and generate a text digest optimized for LLMs'
+author: 'ysskrishna'
+
+branding:
+  icon: 'file-text'
+  color: 'green'
+
+inputs:
+  source:
+    description: 'Repository URL or local path to analyze (default: current workspace)'
+    required: false
+    default: ''
+  max-file-size:
+    description: 'Maximum file size in bytes to process (default: 10485760 = 10MB)'
+    required: false
+    default: '10485760'
+  include-patterns:
+    description: 'Newline-separated shell-style glob patterns to include'
+    required: false
+    default: ''
+  exclude-patterns:
+    description: 'Newline-separated shell-style glob patterns to exclude'
+    required: false
+    default: ''
+  branch:
+    description: 'Branch to analyze'
+    required: false
+    default: ''
+  tag:
+    description: 'Tag to analyze'
+    required: false
+    default: ''
+  include-gitignored:
+    description: 'Include files matched by .gitignore and .gitingestignore (default: false)'
+    required: false
+    default: 'false'
+  include-submodules:
+    description: 'Include Git submodules in the analysis (default: false)'
+    required: false
+    default: 'false'
+  token:
+    description: 'GitHub token for private repositories (default: automatic GITHUB_TOKEN)'
+    required: false
+    default: ''
+  output-dir:
+    description: 'Directory for output files (default: gitingest-output)'
+    required: false
+    default: 'gitingest-output'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install gitingest
+      shell: bash
+      run: pip install "gitingest>=0.3.1,<1"
+
+    - name: Run gitingest
+      id: run-gitingest
+      shell: bash
+      env:
+        INPUT_SOURCE: ${{ inputs.source }}
+        INPUT_MAX_FILE_SIZE: ${{ inputs.max-file-size }}
+        INPUT_INCLUDE_PATTERNS: ${{ inputs.include-patterns }}
+        INPUT_EXCLUDE_PATTERNS: ${{ inputs.exclude-patterns }}
+        INPUT_BRANCH: ${{ inputs.branch }}
+        INPUT_TAG: ${{ inputs.tag }}
+        INPUT_INCLUDE_GITIGNORED: ${{ inputs.include-gitignored }}
+        INPUT_INCLUDE_SUBMODULES: ${{ inputs.include-submodules }}
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_OUTPUT_DIR: ${{ inputs.output-dir }}
+      run: python "${{ github.action_path }}/scripts/run.py"

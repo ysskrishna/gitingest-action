@@ -6,5 +6,5 @@ __pycache__/
 Thumbs.db
 .vscode/
 .idea/
-stats.json
+gitingest-output/
 output/
