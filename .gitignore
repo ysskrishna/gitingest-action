@@ -1,0 +1,10 @@
+workspace/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+stats.json
+output/
