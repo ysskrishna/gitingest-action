@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test-default-source:
+    name: Test default source (current repo)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./
+        with:
+          output-dir: 'gitingest-output'
+
+      - name: Verify all output files exist and are non-empty
+        run: |
+          for file in summary.txt tree.txt content.txt; do
+            filepath="gitingest-output/$file"
+            if [ ! -f "$filepath" ]; then
+              echo "::error::$filepath does not exist"
+              exit 1
+            fi
+            if [ ! -s "$filepath" ]; then
+              echo "::error::$filepath is empty"
+              exit 1
+            fi
+            size=$(wc -c < "$filepath")
+            echo "$file exists and has $size bytes"
+          done
+
+  test-remote-repo:
+    name: Test remote repository URL
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./
+        with:
+          source: 'https://github.com/ysskrishna/social-links'
+          output-dir: 'remote-output'
+
+      - name: Verify summary mentions repository
+        run: |
+          if ! grep -qi "social-links" remote-output/summary.txt; then
+            echo "::error::summary.txt does not mention 'social-links'"
+            exit 1
+          fi
+          echo "Summary correctly references the repository"
+
+      - name: Verify all output files exist
+        run: |
+          for file in summary.txt tree.txt content.txt; do
+            filepath="remote-output/$file"
+            if [ ! -f "$filepath" ]; then
+              echo "::error::$filepath does not exist"
+              exit 1
+            fi
+            size=$(wc -c < "$filepath")
+            echo "$file exists and has $size bytes"
+          done
+
+  test-with-patterns:
+    name: Test include/exclude patterns
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./
+        with:
+          include-patterns: |
+            *.yml
+            *.md
+          output-dir: 'filtered-output'
+
+      - name: Verify output files exist
+        run: |
+          for file in summary.txt tree.txt content.txt; do
+            filepath="filtered-output/$file"
+            if [ ! -f "$filepath" ]; then
+              echo "::error::$filepath does not exist"
+              exit 1
+            fi
+            size=$(wc -c < "$filepath")
+            echo "$file exists and has $size bytes"
+          done
+
+  test-invalid-source:
+    name: Test invalid source fails gracefully
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./
+        id: digest
+        continue-on-error: true
+        with:
+          source: 'https://github.com/this-user-does-not-exist-xyz/this-repo-does-not-exist-abc'
+
+      - name: Verify action failed
+        env:
+          OUTCOME: ${{ steps.digest.outcome }}
+        run: |
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "::error::Expected action to fail for invalid source, but outcome was '$OUTCOME'"
+            exit 1
+          fi
+          echo "Action correctly failed for invalid source"
