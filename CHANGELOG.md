@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Initial release of Gitingest GitHub Action
-- Composite action using `gitingest` Python library (v0.3.1+)
+- Composite action using `gitingest` Python library (v0.3.1)
 - Inputs:
   - `source` (optional, default: current workspace) — repository URL or local path
   - `max-file-size` (optional, default: 10MB) — maximum file size in bytes

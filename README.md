@@ -1,6 +1,7 @@
 # Gitingest Action
 
 [![CI](https://github.com/ysskrishna/gitingest-action/actions/workflows/test.yml/badge.svg)](https://github.com/ysskrishna/gitingest-action/actions/workflows/test.yml)
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Gitingest-blue?logo=github)](https://github.com/marketplace/actions/gitingest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A GitHub Action to analyze Git repositories and generate text digests optimized for LLMs. Powered by [gitingest](https://github.com/coderamp-labs/gitingest).
