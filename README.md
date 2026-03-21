@@ -173,13 +173,13 @@ The action fails with a clear error when:
 
 Errors are surfaced in the GitHub Actions UI via `::error::` workflow commands.
 
-## License
-
-MIT © [Y. Siva Sai Krishna](https://github.com/ysskrishna) - see [LICENSE](LICENSE) for details.
-
 ## Credits
 
 Built on [gitingest](https://github.com/coderamp-labs/gitingest) by Romain Courtois & Filip Christiansen.
+
+## License
+
+MIT © [Y. Siva Sai Krishna](https://github.com/ysskrishna) - see [LICENSE](LICENSE) for details.
 
 ---
 

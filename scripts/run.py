@@ -2,6 +2,7 @@
 """Entrypoint for gitingest GitHub Action."""
 
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -54,37 +55,64 @@ def format_size(size_bytes):
     return f"{size_bytes:.1f} TB"
 
 
+def sanitize_url(url):
+    """Strip embedded credentials from a URL for safe logging."""
+    # Matches https://user:token@host/... or https://token@host/...
+    return re.sub(r"(https?://)([^@]+)@", r"\1***@", url)
+
+
+def extract_slug(source):
+    """Extract an owner/repo slug from a GitHub URL, or return source as-is."""
+    match = re.match(r"https?://[^/]+/([^/]+/[^/]+?)(?:\.git)?/?$", source)
+    return match.group(1) if match else source
+
+
 def main():
-    # Read inputs
+    # Read inputs (use dash-style names matching action.yml input names)
     source = get_input("source", default="")
-    max_file_size_str = get_input("max_file_size", default="10485760")
-    include_patterns_str = get_input("include_patterns", default="")
-    exclude_patterns_str = get_input("exclude_patterns", default="")
+    max_file_size_str = get_input("max-file-size", default="10485760")
+    include_patterns_str = get_input("include-patterns", default="")
+    exclude_patterns_str = get_input("exclude-patterns", default="")
     branch = get_input("branch", default=None)
     tag = get_input("tag", default=None)
-    include_gitignored = parse_bool(get_input("include_gitignored", default="false"))
-    include_submodules = parse_bool(get_input("include_submodules", default="false"))
+    include_gitignored = parse_bool(get_input("include-gitignored", default="false"))
+    include_submodules = parse_bool(get_input("include-submodules", default="false"))
     token = get_input("token", default=None)
-    output_dir = get_input("output_dir", default="gitingest-output")
+    output_dir = get_input("output-dir", default="gitingest-output")
+
+    # Mask token in logs so GitHub Actions redacts it from all output
+    if token:
+        print(f"::add-mask::{token}")
 
     # Resolve source
     if not source:
         source = os.environ.get("GITHUB_WORKSPACE", ".")
-    print(f"Source: {source}")
+    print(f"Source: {sanitize_url(source)}")
 
-    # Parse max_file_size
+    # Parse and validate max_file_size
     try:
         max_file_size = int(max_file_size_str)
     except (ValueError, TypeError):
         print(f"::error::Invalid max-file-size value: '{max_file_size_str}'. Must be an integer.")
+        sys.exit(1)
+    if max_file_size <= 0:
+        print(f"::error::max-file-size must be a positive integer, got {max_file_size}.")
         sys.exit(1)
 
     # Parse patterns
     include_patterns = parse_patterns(include_patterns_str)
     exclude_patterns = parse_patterns(exclude_patterns_str)
 
-    # Validate output directory
+    # Validate source — local paths must stay inside the workspace
     workspace = Path(os.environ.get("GITHUB_WORKSPACE", ".")).resolve()
+    is_url = source.startswith(("http://", "https://"))
+    if not is_url:
+        resolved_source = Path(source).resolve()
+        if not resolved_source.is_relative_to(workspace):
+            print(f"::error::source '{source}' resolves outside the workspace.")
+            sys.exit(1)
+
+    # Validate output directory
     resolved_output_dir = (workspace / output_dir).resolve()
     if not resolved_output_dir.is_relative_to(workspace):
         print(f"::error::output-dir '{output_dir}' resolves outside the workspace.")
@@ -98,7 +126,7 @@ def main():
         sys.exit(1)
 
     # Run ingestion
-    print(f"Running gitingest on: {source}")
+    print(f"Running gitingest on: {sanitize_url(source)}")
     try:
         summary, tree, content = ingest(
             source,
@@ -131,11 +159,11 @@ def main():
         print(f"  tree.txt:     {format_size(tree_file.stat().st_size)}")
         print(f"  content.txt:  {format_size(content_file.stat().st_size)}")
 
-        # Derive a slug for display
-        slug = source
+        # Derive a slug for display (owner/repo for URLs, GITHUB_REPOSITORY for local)
         if source == os.environ.get("GITHUB_WORKSPACE", "."):
-            repo = os.environ.get("GITHUB_REPOSITORY", "")
-            slug = repo if repo else source
+            slug = os.environ.get("GITHUB_REPOSITORY", "") or source
+        else:
+            slug = extract_slug(source)
 
         # GitHub Step Summary
         summary_file_path = os.environ.get("GITHUB_STEP_SUMMARY")
@@ -153,16 +181,16 @@ def main():
         )
 
     except ValueError as e:
-        print(f"::error::Ingestion error: {e}")
+        print(f"::error::Ingestion error: {sanitize_url(str(e))}")
         sys.exit(1)
     except RuntimeError as e:
-        print(f"::error::Git operation failed: {e}")
+        print(f"::error::Git operation failed: {sanitize_url(str(e))}")
         sys.exit(1)
     except OSError as e:
-        print(f"::error::File system error: {e}")
+        print(f"::error::File system error: {sanitize_url(str(e))}")
         sys.exit(1)
     except Exception as e:
-        print(f"::error::Unhandled error: {e}")
+        print(f"::error::Unhandled error: {sanitize_url(str(e))}")
         sys.exit(1)
 
 
