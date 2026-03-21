@@ -40,7 +40,7 @@ inputs:
     required: false
     default: 'false'
   token:
-    description: 'GitHub token for private repositories (default: automatic GITHUB_TOKEN)'
+    description: 'GitHub token for private repositories'
     required: false
     default: ''
   output-dir:
@@ -69,7 +69,7 @@ runs:
 
     - name: Install gitingest
       shell: bash
-      run: pip install "gitingest>=0.3.1,<0.4"
+      run: pip install "gitingest==0.3.1"
 
     - name: Run gitingest
       id: run-gitingest
