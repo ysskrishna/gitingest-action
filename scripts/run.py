@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Entrypoint for gitingest GitHub Action."""
 
+import html
 import os
 import re
 import sys
@@ -14,9 +15,9 @@ STEP_SUMMARY_TEMPLATE = """\
 <details>
 <summary>Directory Tree</summary>
 
-```
+{fence}
 {tree}
-```
+{fence}
 
 </details>
 """
@@ -65,6 +66,14 @@ def extract_slug(source):
     """Extract an owner/repo slug from a GitHub URL, or return source as-is."""
     match = re.match(r"https?://[^/]+/([^/]+/[^/]+?)(?:\.git)?/?$", source)
     return match.group(1) if match else source
+
+
+def safe_code_fence(text):
+    """Return a backtick fence long enough that `text` cannot break out of it."""
+    longest_run = 0
+    for m in re.finditer(r"`+", text):
+        longest_run = max(longest_run, len(m.group()))
+    return "`" * max(3, longest_run + 1)
 
 
 def main():
@@ -165,14 +174,18 @@ def main():
         else:
             slug = extract_slug(source)
 
-        # GitHub Step Summary
+        # GitHub Step Summary (sanitize to prevent markdown/HTML injection)
         summary_file_path = os.environ.get("GITHUB_STEP_SUMMARY")
         if summary_file_path:
+            safe_summary = html.escape(summary)
+            safe_tree = html.escape(tree)
+            fence = safe_code_fence(safe_tree)
             with open(summary_file_path, "a", encoding="utf-8") as f:
                 f.write(STEP_SUMMARY_TEMPLATE.format(
                     slug=slug,
-                    summary=summary,
-                    tree=tree,
+                    summary=safe_summary,
+                    tree=safe_tree,
+                    fence=fence,
                 ))
 
         print(
