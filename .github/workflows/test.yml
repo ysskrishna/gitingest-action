@@ -1,4 +1,4 @@
-name: CI
+name: Tests
 
 on:
   push:
@@ -8,18 +8,19 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-default-source:
-    name: Test default source (current repo)
+  test-local-repo:
+    name: Analyze local repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./
+      - name: Run gitingest on current repo
         id: digest
+        uses: ./
         with:
           output-dir: 'gitingest-output'
 
-      - name: Verify all output files exist and are non-empty
+      - name: Verify output files exist and are non-empty
         run: |
           for file in summary.txt tree.txt content.txt; do
             filepath="gitingest-output/$file"
@@ -31,41 +32,41 @@ jobs:
               echo "::error::$filepath is empty"
               exit 1
             fi
-            size=$(wc -c < "$filepath")
-            echo "$file exists and has $size bytes"
+            echo "$file exists ($(wc -c < "$filepath") bytes)"
           done
 
-      - name: Verify action outputs are set
+      - name: Verify action outputs point to real files
         env:
           SUMMARY_FILE: ${{ steps.digest.outputs.summary-file }}
           TREE_FILE: ${{ steps.digest.outputs.tree-file }}
           CONTENT_FILE: ${{ steps.digest.outputs.content-file }}
         run: |
-          for var in SUMMARY_FILE TREE_FILE CONTENT_FILE; do
-            value=$(eval echo "\$$var")
-            if [ -z "$value" ]; then
-              echo "::error::Output $var is empty — step id may be out of sync with action.yml outputs"
+          for name in SUMMARY_FILE TREE_FILE CONTENT_FILE; do
+            path="${!name}"
+            if [ -z "$path" ]; then
+              echo "::error::Output $name is empty"
               exit 1
             fi
-            if [ ! -f "$value" ]; then
-              echo "::error::Output $var points to '$value' which does not exist"
+            if [ ! -f "$path" ]; then
+              echo "::error::Output $name points to '$path' which does not exist"
               exit 1
             fi
-            echo "$var = $value (exists)"
+            echo "$name = $path (exists)"
           done
 
   test-remote-repo:
-    name: Test remote repository URL
+    name: Analyze remote repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./
+      - name: Run gitingest on remote repo
+        uses: ./
         with:
           source: 'https://github.com/ysskrishna/social-links'
           output-dir: 'remote-output'
 
-      - name: Verify summary mentions repository
+      - name: Verify summary mentions repository name
         run: |
           if ! grep -qi "social-links" remote-output/summary.txt; then
             echo "::error::summary.txt does not mention 'social-links'"
@@ -73,7 +74,7 @@ jobs:
           fi
           echo "Summary correctly references the repository"
 
-      - name: Verify all output files exist
+      - name: Verify output files exist
         run: |
           for file in summary.txt tree.txt content.txt; do
             filepath="remote-output/$file"
@@ -81,17 +82,17 @@ jobs:
               echo "::error::$filepath does not exist"
               exit 1
             fi
-            size=$(wc -c < "$filepath")
-            echo "$file exists and has $size bytes"
+            echo "$file exists ($(wc -c < "$filepath") bytes)"
           done
 
-  test-with-patterns:
-    name: Test include/exclude patterns
+  test-include-patterns:
+    name: Analyze with include patterns
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./
+      - name: Run gitingest with pattern filters
+        uses: ./
         with:
           include-patterns: |
             *.yml
@@ -106,18 +107,18 @@ jobs:
               echo "::error::$filepath does not exist"
               exit 1
             fi
-            size=$(wc -c < "$filepath")
-            echo "$file exists and has $size bytes"
+            echo "$file exists ($(wc -c < "$filepath") bytes)"
           done
 
   test-invalid-source:
-    name: Test invalid source fails gracefully
+    name: Fail gracefully on invalid source
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./
+      - name: Run gitingest with non-existent repo
         id: digest
+        uses: ./
         continue-on-error: true
         with:
           source: 'https://github.com/this-user-does-not-exist-xyz/this-repo-does-not-exist-abc'
@@ -127,7 +128,7 @@ jobs:
           OUTCOME: ${{ steps.digest.outcome }}
         run: |
           if [ "$OUTCOME" != "failure" ]; then
-            echo "::error::Expected action to fail for invalid source, but outcome was '$OUTCOME'"
+            echo "::error::Expected failure, but outcome was '$OUTCOME'"
             exit 1
           fi
           echo "Action correctly failed for invalid source"
