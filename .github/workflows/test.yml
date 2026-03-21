@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: ./
+        id: digest
         with:
           output-dir: 'gitingest-output'
 
@@ -32,6 +33,25 @@ jobs:
             fi
             size=$(wc -c < "$filepath")
             echo "$file exists and has $size bytes"
+          done
+
+      - name: Verify action outputs are set
+        env:
+          SUMMARY_FILE: ${{ steps.digest.outputs.summary-file }}
+          TREE_FILE: ${{ steps.digest.outputs.tree-file }}
+          CONTENT_FILE: ${{ steps.digest.outputs.content-file }}
+        run: |
+          for var in SUMMARY_FILE TREE_FILE CONTENT_FILE; do
+            value=$(eval echo "\$$var")
+            if [ -z "$value" ]; then
+              echo "::error::Output $var is empty — step id may be out of sync with action.yml outputs"
+              exit 1
+            fi
+            if [ ! -f "$value" ]; then
+              echo "::error::Output $var points to '$value' which does not exist"
+              exit 1
+            fi
+            echo "$var = $value (exists)"
           done
 
   test-remote-repo:

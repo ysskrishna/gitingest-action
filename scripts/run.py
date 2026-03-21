@@ -78,16 +78,18 @@ def safe_code_fence(text):
 
 def main():
     # Read inputs (use dash-style names matching action.yml input names)
+    # Defaults are defined in action.yml — Python side only validates or uses
+    # None as a "not provided" sentinel. No duplicate defaults.
     source = get_input("source", default="")
-    max_file_size_str = get_input("max-file-size", default="10485760")
-    include_patterns_str = get_input("include-patterns", default="")
-    exclude_patterns_str = get_input("exclude-patterns", default="")
-    branch = get_input("branch", default=None)
-    tag = get_input("tag", default=None)
-    include_gitignored = parse_bool(get_input("include-gitignored", default="false"))
-    include_submodules = parse_bool(get_input("include-submodules", default="false"))
-    token = get_input("token", default=None)
-    output_dir = get_input("output-dir", default="gitingest-output")
+    max_file_size_str = get_input("max-file-size", required=True)
+    include_patterns_str = get_input("include-patterns")
+    exclude_patterns_str = get_input("exclude-patterns")
+    branch = get_input("branch")
+    tag = get_input("tag")
+    include_gitignored = parse_bool(get_input("include-gitignored"))
+    include_submodules = parse_bool(get_input("include-submodules"))
+    token = get_input("token")
+    output_dir = get_input("output-dir", required=True)
 
     # Mask token in logs so GitHub Actions redacts it from all output
     if token:
