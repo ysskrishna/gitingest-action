@@ -8,6 +8,8 @@ A GitHub Action to analyze Git repositories and generate text digests optimized 
 ## Quick Start
 
 ```yaml
+- uses: actions/checkout@v4
+
 - uses: ysskrishna/gitingest-action@v1
   with:
     output-dir: 'gitingest-output'
@@ -30,6 +32,14 @@ A GitHub Action to analyze Git repositories and generate text digests optimized 
 | `token` | GitHub token for private repos | No | — |
 | `output-dir` | Output directory path | No | `gitingest-output` |
 
+## Outputs
+
+| Output | Description |
+|--------|-------------|
+| `summary-file` | Path to the generated `summary.txt` file |
+| `tree-file` | Path to the generated `tree.txt` file |
+| `content-file` | Path to the generated `content.txt` file |
+
 ## Output Files
 
 The action writes three files to the `output-dir` directory:
@@ -42,90 +52,11 @@ The action writes three files to the `output-dir` directory:
 
 ## Accessing Results
 
-### 1. Output Files
+Results can be accessed in three ways:
 
-Read the files directly in subsequent steps:
-
-```yaml
-- run: cat gitingest-output/summary.txt
-- run: cat gitingest-output/tree.txt
-- run: python process.py gitingest-output/content.txt
-```
-
-### 2. Job Summary
-
-A markdown summary is automatically added to the workflow run's Summary page with the repository overview and directory tree.
-
-## Usage Examples
-
-### Analyze current repository
-
-```yaml
-- uses: actions/checkout@v4
-
-- uses: ysskrishna/gitingest-action@v1
-  with:
-    output-dir: 'gitingest-output'
-
-- run: cat gitingest-output/summary.txt
-```
-
-### Analyze a remote repository
-
-```yaml
-- uses: ysskrishna/gitingest-action@v1
-  with:
-    source: 'https://github.com/coderamp-labs/gitingest'
-    branch: 'main'
-```
-
-### Filter files with patterns
-
-```yaml
-- uses: ysskrishna/gitingest-action@v1
-  with:
-    include-patterns: |
-      *.py
-      *.md
-    exclude-patterns: |
-      tests/*
-      docs/*
-```
-
-### Analyze a private repository
-
-```yaml
-- uses: ysskrishna/gitingest-action@v1
-  with:
-    source: 'https://github.com/owner/private-repo'
-    token: ${{ secrets.GITHUB_TOKEN }}
-```
-
-### Save digest as artifact
-
-```yaml
-- uses: ysskrishna/gitingest-action@v1
-  with:
-    output-dir: 'digest'
-
-- uses: actions/upload-artifact@v4
-  with:
-    name: repo-digest
-    path: digest/
-```
-
-### Upload only summary and tree (skip large content file)
-
-```yaml
-- uses: ysskrishna/gitingest-action@v1
-
-- uses: actions/upload-artifact@v4
-  with:
-    name: repo-overview
-    path: |
-      gitingest-output/summary.txt
-      gitingest-output/tree.txt
-```
+1. **Action outputs** — reference file paths via `steps.<id>.outputs.summary-file`, `tree-file`, `content-file`
+2. **Output files** — read files directly from the `output-dir` directory
+3. **Job summary** — a markdown summary is automatically added to the workflow run's Summary page
 
 ## Large Repositories
 
@@ -140,28 +71,7 @@ The `gitingest` library enforces these limits to prevent memory issues:
 
 When these limits are hit, files are silently skipped and warnings are logged. The digest will be partial but still usable.
 
-### Recommendations for Large Repos
-
-- **Use pattern filtering**: Scope the analysis to relevant files using `include-patterns` and `exclude-patterns`
-- **Analyze specific directories**: Pass a subdirectory path as `source`
-- **Lower the file size limit**: Use `max-file-size` to skip large files earlier
-- **The digest file is the primary output**: Don't rely on inline outputs for large repos
-
-Example for a monorepo:
-
-```yaml
-- uses: ysskrishna/gitingest-action@v1
-  with:
-    source: './packages/my-package'
-    include-patterns: |
-      *.ts
-      *.tsx
-      *.json
-    exclude-patterns: |
-      node_modules/*
-      dist/*
-      *.test.ts
-```
+Use `include-patterns`, `exclude-patterns`, or a subdirectory `source` to scope analysis for large repos.
 
 ## Error Handling
 
@@ -170,12 +80,14 @@ The action fails with a clear error when:
 - **Repository not found** — invalid URL or insufficient permissions
 - **Git clone failed** — network issues or invalid branch/tag
 - **File system error** — output directory not writable
+- **Invalid input** — `max-file-size` is not a positive integer, or `output-dir` is empty
+- **Source outside workspace** — local source path resolves outside `GITHUB_WORKSPACE`
 
 Errors are surfaced in the GitHub Actions UI via `::error::` workflow commands.
 
 ## Credits
 
-Built on [gitingest](https://github.com/coderamp-labs/gitingest) by Romain Courtois & Filip Christiansen.
+Built on [gitingest](https://github.com/coderamp-labs/gitingest) by [Romain Courtois](https://github.com/cyclotruc) & [Filip Christiansen](https://github.com/filipchristiansen).
 
 ## License
 
