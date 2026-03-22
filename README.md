@@ -74,6 +74,32 @@ When these limits are hit, files are silently skipped and warnings are logged. T
 
 Use `include-patterns`, `exclude-patterns`, or a subdirectory `source` to scope analysis for large repos.
 
+## Usage Examples
+
+For complete, ready-to-use workflow files, see the [examples repository](https://github.com/ysskrishna/gitingest-action-examples).
+
+| Example | Description |
+|---------|-------------|
+| [Analyze Remote Repository](https://github.com/ysskrishna/gitingest-action-examples/blob/main/.github/workflows/analyze-remote-repo.yml) | Analyze a repository by URL using `source` and optional `branch` |
+| [Filter Files with Patterns](https://github.com/ysskrishna/gitingest-action-examples/blob/main/.github/workflows/filter-files-with-patterns.yml) | Include/exclude files with `include-patterns` and `exclude-patterns` |
+| [Analyze Specific Tag](https://github.com/ysskrishna/gitingest-action-examples/blob/main/.github/workflows/analyze-specific-tag.yml) | Analyze a tagged release with `tag` |
+| [Monorepo Scoped Analysis](https://github.com/ysskrishna/gitingest-action-examples/blob/main/.github/workflows/monorepo-scoped-analysis.yml) | Analyze only a subdirectory in a monorepo |
+| [Save Digest as Artifact](https://github.com/ysskrishna/gitingest-action-examples/blob/main/.github/workflows/save-digest-as-artifact.yml) | Upload generated digest files as workflow artifacts |
+| [Selective Artifact Upload](https://github.com/ysskrishna/gitingest-action-examples/blob/main/.github/workflows/selective-artifact-upload.yml) | Upload only selected output files (for example `summary.txt`, `tree.txt`) |
+| [Scheduled Weekly Digest](https://github.com/ysskrishna/gitingest-action-examples/blob/main/.github/workflows/scheduled-weekly-digest.yml) | Run digest generation on a weekly cron schedule |
+
+### Example: Analyze a Private Repository
+
+```yaml
+- uses: ysskrishna/gitingest-action@v1
+  with:
+    source: 'https://github.com/owner/private-repo'
+    token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+    output-dir: 'gitingest-output'
+```
+
+Store the token as a repository or organization secret, and grant least-privilege read access to the target repository.
+
 ## Error Handling
 
 The action fails with a clear error when:
