@@ -126,6 +126,7 @@ MIT © [Y. Siva Sai Krishna](https://github.com/ysskrishna) - see [LICENSE](LICE
   <a href="https://github.com/ysskrishna">Author's GitHub</a> •
   <a href="https://linkedin.com/in/ysskrishna">Author's LinkedIn</a> •
   <a href="https://github.com/coderamp-labs/gitingest">gitingest Library</a> •
+  <a href="https://github.com/ysskrishna/gitingest-action-examples">Examples</a> •
   <a href="https://github.com/ysskrishna/gitingest-action/issues">Report Issues</a> •
   <a href="https://github.com/ysskrishna/gitingest-action/releases">Releases</a>
 </p>
