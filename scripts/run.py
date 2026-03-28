@@ -5,6 +5,7 @@ import html
 import os
 import re
 import sys
+import traceback
 from pathlib import Path
 
 STEP_SUMMARY_TEMPLATE = """\
@@ -206,6 +207,7 @@ def main():
         sys.exit(1)
     except Exception as e:
         print(f"::error::Unhandled error: {sanitize_url(str(e))}")
+        traceback.print_exc()
         sys.exit(1)
 
 
