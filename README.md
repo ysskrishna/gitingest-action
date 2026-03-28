@@ -9,13 +9,25 @@ A GitHub Action to analyze Git repositories and generate text digests optimized 
 ## Quick Start
 
 ```yaml
-- uses: actions/checkout@v4
+name: Analyze Github Repository
+on: workflow_dispatch
 
-- uses: ysskrishna/gitingest-action@v1
-  with:
-    output-dir: 'gitingest-output'
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Analyze Github Repository
+        uses: ysskrishna/gitingest-action@v1
+        id: digest
+        with:
+          source: 'https://github.com/ysskrishna/pypi-package-stats'
+          branch: 'main'
 
-- run: cat gitingest-output/summary.txt
+      - name: Display Github Repository summary
+        run: |
+          echo "📊 Github Repository Digest Summary:"
+          echo "================================"
+          cat ${{ steps.digest.outputs.summary-file }}
 ```
 
 ## Inputs
