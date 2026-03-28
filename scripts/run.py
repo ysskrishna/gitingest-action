@@ -178,18 +178,49 @@ def main():
             slug = extract_slug(source)
 
         # GitHub Step Summary (sanitize to prevent markdown/HTML injection)
+        # GitHub imposes a 1 MB limit on step summary content.
+        STEP_SUMMARY_LIMIT = 1_000_000  # 1 MB
         summary_file_path = os.environ.get("GITHUB_STEP_SUMMARY")
         if summary_file_path:
             safe_summary = html.escape(summary)
             safe_tree = html.escape(tree)
+
+            # Check how much space is already used in the summary file
+            existing_size = 0
+            try:
+                existing_size = os.path.getsize(summary_file_path)
+            except OSError:
+                pass
+
+            budget = STEP_SUMMARY_LIMIT - existing_size
             fence = safe_code_fence(safe_tree)
+            step_content = STEP_SUMMARY_TEMPLATE.format(
+                slug=slug,
+                summary=safe_summary,
+                tree=safe_tree,
+                fence=fence,
+            )
+
+            # If the content exceeds the remaining budget, truncate the tree
+            if len(step_content.encode("utf-8")) > budget:
+                truncation_note = "\n\n[Tree truncated — exceeds GitHub step summary size limit]"
+                # Rebuild with a shorter tree to fit within budget
+                safe_tree_truncated = safe_tree
+                while True:
+                    fence = safe_code_fence(safe_tree_truncated)
+                    step_content = STEP_SUMMARY_TEMPLATE.format(
+                        slug=slug,
+                        summary=safe_summary,
+                        tree=safe_tree_truncated + truncation_note,
+                        fence=fence,
+                    )
+                    if len(step_content.encode("utf-8")) <= budget or not safe_tree_truncated:
+                        break
+                    # Cut the tree in half each iteration to converge quickly
+                    safe_tree_truncated = safe_tree_truncated[: len(safe_tree_truncated) // 2]
+
             with open(summary_file_path, "a", encoding="utf-8") as f:
-                f.write(STEP_SUMMARY_TEMPLATE.format(
-                    slug=slug,
-                    summary=safe_summary,
-                    tree=safe_tree,
-                    fence=fence,
-                ))
+                f.write(step_content)
 
         print(
             f"\nDigest files are available at {output_dir}/ and can be used in"
