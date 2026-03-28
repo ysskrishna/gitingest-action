@@ -2,11 +2,14 @@
 """Entrypoint for gitingest GitHub Action."""
 
 import html
+import ipaddress
 import os
 import re
+import socket
 import sys
 import traceback
 from pathlib import Path
+from urllib.parse import urlparse
 
 STEP_SUMMARY_LIMIT = 1_000_000  # 1 MB — GitHub's cap on step summary content
 
@@ -156,6 +159,34 @@ def validate_paths(source, output_dir):
     return workspace, resolved_output_dir
 
 
+def validate_url(url):
+    """Block URLs that resolve to private or reserved IP addresses (SSRF protection).
+
+    On self-hosted runners, an unchecked URL could reach internal services
+    (e.g. cloud metadata at 169.254.169.254). This resolves the hostname and
+    rejects any address in RFC 1918, loopback, or link-local ranges.
+    """
+    hostname = urlparse(url).hostname
+    if not hostname:
+        print("::error::Could not parse hostname from source URL.")
+        sys.exit(1)
+
+    try:
+        addrinfos = socket.getaddrinfo(hostname, None)
+    except socket.gaierror:
+        # DNS resolution failed — let gitingest surface the real error later
+        return
+
+    for _family, _type, _proto, _canonname, sockaddr in addrinfos:
+        ip = ipaddress.ip_address(sockaddr[0])
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+            print(
+                f"::error::source URL resolves to a private/reserved address ({ip}). "
+                "This is blocked to prevent SSRF attacks."
+            )
+            sys.exit(1)
+
+
 def run_ingestion(source, **kwargs):
     """Import gitingest and run ingestion.
 
@@ -247,6 +278,9 @@ def main():
     output_dir = inputs.pop("output_dir")
 
     _workspace, resolved_output_dir = validate_paths(source, output_dir)
+
+    if source.startswith(("http://", "https://")):
+        validate_url(source)
 
     try:
         summary, tree, content = run_ingestion(source, **inputs)

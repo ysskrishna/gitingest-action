@@ -26,5 +26,10 @@ You should receive an acknowledgement within 72 hours. Fixes for confirmed issue
 - Beyond URL credentials, error messages may contain runner filesystem paths (e.g. `/home/runner/work/...`). These paths are predictable on GitHub-hosted runners and do not constitute sensitive information.
 - For public repositories, the repository contents themselves are already public, so their appearance in error output does not create new exposure.
 
+### SSRF protection
+- Remote `source` URLs are resolved via DNS before being passed to `gitingest`. If any resolved address falls within private (RFC 1918), loopback (`127.0.0.0/8`), link-local (`169.254.0.0/16`), or IANA-reserved ranges, the action exits with an error.
+- This prevents a misconfigured or malicious workflow from using the action to reach internal services (e.g. cloud instance metadata at `169.254.169.254`) on self-hosted runners.
+- If DNS resolution fails, the action defers to `gitingest` to surface the connection error rather than silently proceeding.
+
 ### Path traversal
 - Local source paths and the output directory are validated to stay within `GITHUB_WORKSPACE` before any file operations occur.
