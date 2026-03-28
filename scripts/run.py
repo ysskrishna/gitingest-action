@@ -286,6 +286,7 @@ def main():
         summary, tree, content = run_ingestion(source, **inputs)
 
         write_output_files(resolved_output_dir, summary, tree, content)
+        del content  # Free the large string before step-summary work
 
         # Derive a slug for display (owner/repo for URLs, GITHUB_REPOSITORY for local)
         if source == os.environ.get("GITHUB_WORKSPACE", "."):
