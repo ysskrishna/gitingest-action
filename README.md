@@ -9,13 +9,25 @@ A GitHub Action to analyze Git repositories and generate text digests optimized 
 ## Quick Start
 
 ```yaml
-- uses: actions/checkout@v4
+name: Analyze Github Repository
+on: workflow_dispatch
 
-- uses: ysskrishna/gitingest-action@v1
-  with:
-    output-dir: 'gitingest-output'
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Analyze Github Repository
+        uses: ysskrishna/gitingest-action@v1
+        id: digest
+        with:
+          source: 'https://github.com/ysskrishna/pypi-package-stats'
+          branch: 'main'
 
-- run: cat gitingest-output/summary.txt
+      - name: Display Github Repository summary
+        run: |
+          echo "📊 Github Repository Digest Summary:"
+          echo "================================"
+          cat ${{ steps.digest.outputs.summary-file }}
 ```
 
 ## Inputs
@@ -35,29 +47,15 @@ A GitHub Action to analyze Git repositories and generate text digests optimized 
 
 ## Outputs
 
-| Output | Description |
-|--------|-------------|
-| `summary-file` | Path to the generated `summary.txt` file |
-| `tree-file` | Path to the generated `tree.txt` file |
-| `content-file` | Path to the generated `content.txt` file |
+The action produces three files in the `output-dir` directory, and a job summary on the workflow run's Summary page.
 
-## Output Files
+| Output | File | Contents | Typical Use Case |
+|--------|------|----------|------------------|
+| `summary-file` | `summary.txt` | Stats: file count, token estimate, repo info | Quick overview, CI checks |
+| `tree-file` | `tree.txt` | Directory tree structure | Understanding repo layout |
+| `content-file` | `content.txt` | Concatenated file contents | Feeding to LLMs, code analysis |
 
-The action writes three files to the `output-dir` directory:
-
-| File | Contents | Typical Use Case |
-|------|----------|------------------|
-| `summary.txt` | Stats: file count, token estimate, repo info | Quick overview, CI checks |
-| `tree.txt` | Directory tree structure | Understanding repo layout |
-| `content.txt` | Concatenated file contents | Feeding to LLMs, code analysis |
-
-## Accessing Results
-
-Results can be accessed in three ways:
-
-1. **Action outputs** — reference file paths via `steps.<id>.outputs.summary-file`, `tree-file`, `content-file`
-2. **Output files** — read files directly from the `output-dir` directory
-3. **Job summary** — a markdown summary is automatically added to the workflow run's Summary page
+Access file paths via `steps.<id>.outputs.summary-file` (etc.), or read them directly from `output-dir`.
 
 ## Large Repositories
 
