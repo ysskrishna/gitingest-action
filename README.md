@@ -3,6 +3,8 @@
 [![CI](https://github.com/ysskrishna/gitingest-action/actions/workflows/test.yml/badge.svg)](https://github.com/ysskrishna/gitingest-action/actions/workflows/test.yml)
 [![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Gitingest-blue?logo=github)](https://github.com/marketplace/actions/gitingest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Context7](https://img.shields.io/badge/Context7-docs-18181B)](https://context7.com/ysskrishna/gitingest-action)
+[![Ask DeepWiki](https://img.shields.io/badge/DeepWiki-ask-18181B)](https://deepwiki.com/ysskrishna/gitingest-action)
 
 A GitHub Action to analyze Git repositories and generate text digests optimized for LLMs. Powered by [gitingest](https://github.com/coderamp-labs/gitingest).
 
