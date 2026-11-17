@@ -1,0 +1,28 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "url": "https://context7.com/ysskrishna/gitingest-action",
+  "public_key": "pk_VesXVq9WjBT8ecKU9XIZz",
+  "projectTitle": "Gitingest Action",
+  "description": "GitHub Action that runs gitingest to turn a Git repository into a text digest for LLMs, with inputs for include and exclude patterns, private repositories and large repositories.",
+  "excludeFolders": [
+    "archive",
+    "archived",
+    "old",
+    "deprecated",
+    "legacy",
+    "tests",
+    ".github",
+    "scripts"
+  ],
+  "excludeFiles": [
+    "CHANGELOG.md",
+    "changelog.md",
+    "LICENSE.md",
+    "license.md",
+    "CODE_OF_CONDUCT.md",
+    "NEWS.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "AGENTS.md"
+  ]
+}
