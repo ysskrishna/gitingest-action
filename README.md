@@ -3,6 +3,8 @@
 [![CI](https://github.com/ysskrishna/gitingest-action/actions/workflows/test.yml/badge.svg)](https://github.com/ysskrishna/gitingest-action/actions/workflows/test.yml)
 [![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Gitingest-blue?logo=github)](https://github.com/marketplace/actions/gitingest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/ysskrishna/gitingest-action?label=release)](https://github.com/ysskrishna/gitingest-action/releases)
+[![Author site](https://img.shields.io/badge/author-ysskrishna.space-informational)](https://ysskrishna.space)
 [![Context7](https://img.shields.io/badge/Context7-docs-18181B)](https://context7.com/ysskrishna/gitingest-action)
 [![Ask DeepWiki](https://img.shields.io/badge/DeepWiki-ask-18181B)](https://deepwiki.com/ysskrishna/gitingest-action)
 
@@ -116,17 +118,40 @@ Errors are surfaced in the GitHub Actions UI via `::error::` workflow commands.
 
 Built on [gitingest](https://github.com/coderamp-labs/gitingest) by [Romain Courtois](https://github.com/cyclotruc) & [Filip Christiansen](https://github.com/filipchristiansen).
 
+## Built and maintained by
+
+Gitingest Action is built and maintained by:
+
+| | Name | GitHub | Role |
+|---|------|--------|------|
+| <img src="https://github.com/ysskrishna.png?size=120" width="60" height="60" alt="Y. Siva Sai Krishna"> | **Y. Siva Sai Krishna** | [@ysskrishna](https://github.com/ysskrishna) | Creator |
+
+## Changelog
+
+See [CHANGELOG](CHANGELOG.md) for release history.
+
+## Support
+
+If you find this project helpful:
+
+- ⭐ Star the repository
+- 🐛 [Report issues](https://github.com/ysskrishna/gitingest-action/issues)
+- 🔀 Submit pull requests
+- 💝 [Sponsor on GitHub](https://github.com/sponsors/ysskrishna)
+
 ## License
 
-MIT © [Y. Siva Sai Krishna](https://github.com/ysskrishna) - see [LICENSE](LICENSE) for details.
+MIT © [Y. Siva Sai Krishna](https://github.com/ysskrishna) — see [LICENSE](LICENSE) for details.
 
 ---
 
 <p align="left">
   <a href="https://github.com/ysskrishna">Author's GitHub</a> •
   <a href="https://linkedin.com/in/ysskrishna">Author's LinkedIn</a> •
+  <a href="https://ysskrishna.space">Author's site</a> •
+  <a href="https://github.com/marketplace/actions/gitingest">GitHub Marketplace</a> •
   <a href="https://github.com/coderamp-labs/gitingest">gitingest Library</a> •
   <a href="https://github.com/ysskrishna/gitingest-action-examples">Examples</a> •
-  <a href="https://github.com/ysskrishna/gitingest-action/issues">Report Issues</a> •
-  <a href="https://github.com/ysskrishna/gitingest-action/releases">Releases</a>
+  <a href="https://github.com/ysskrishna/gitingest-action/releases">Releases</a> •
+  <a href="https://github.com/ysskrishna/gitingest-action/issues">Report Issues</a>
 </p>
