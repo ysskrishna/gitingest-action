@@ -130,6 +130,17 @@ Gitingest Action is built and maintained by:
 
 See [CHANGELOG](CHANGELOG.md) for release history.
 
+## Releasing
+
+GitHub Releases use [Changelog Release](https://github.com/ysskrishna/changelog-release-action)
+with its default settings. Before pushing a version tag such as `v1.2.3`, commit a
+nonempty `## [1.2.3]` section to `CHANGELOG.md`. That section becomes the release
+body, and the title is `Release v1.2.3`. A missing section fails the release job.
+
+Existing releases are skipped. Moving the `v1` tag does not create a release.
+The release workflow tests exercise this repository's changelog in a temporary
+fixture without publishing a release.
+
 ## Support
 
 If you find this project helpful:

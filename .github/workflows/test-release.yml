@@ -1,0 +1,29 @@
+name: Release workflow tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-fixture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout consumer
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - name: Checkout release action under test
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          repository: ysskrishna/changelog-release-action
+          ref: ead6a320ef861effad4269afe5667147365d2853
+          path: .release-action
+          persist-credentials: false
+      - name: Verify this changelog through the release runtime without publishing
+        run: python3 .release-action/tests/pilot.py "$GITHUB_WORKSPACE"
