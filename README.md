@@ -1,6 +1,5 @@
 # Gitingest Action
 
-[![CI](https://github.com/ysskrishna/gitingest-action/actions/workflows/test.yml/badge.svg)](https://github.com/ysskrishna/gitingest-action/actions/workflows/test.yml)
 [![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Gitingest-blue?logo=github)](https://github.com/marketplace/actions/gitingest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/ysskrishna/gitingest-action?label=release)](https://github.com/ysskrishna/gitingest-action/releases)
