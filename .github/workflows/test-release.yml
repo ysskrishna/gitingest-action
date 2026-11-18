@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: ysskrishna/changelog-release-action
-          ref: 80b46b4138a8f1dedfe4bca40dbed7a822603ea0
+          ref: c574fb829fd42a3979bd1c9920650ad9da4634fe
           path: .release-action
           persist-credentials: false
       - name: Install release test dependencies
