@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- GitHub Releases use the shared Changelog Release action and require a matching, nonempty changelog section.
+- GitHub Releases use the shared Release from Changelog or Tag action and require a matching, nonempty changelog section.
 - Moving the `v1` tag no longer creates a GitHub Release.
 
 ## [1.1.0]
